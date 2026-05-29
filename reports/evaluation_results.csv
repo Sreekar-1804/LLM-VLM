@@ -1,0 +1,9 @@
+image_name,expected_issue_keyword,predicted_issue_type,issue_keyword_match,expected_severity,predicted_severity,severity_match,expected_rule_id,retrieved_rule_ids,matched_rule_id,expected_rule_retrieved,matched_rule_correct,human_review_required,latency_ms,report_valid
+ppe_violation_01.jpg,helmet,Missing Helmet,True,High,High,True,PPE-001,"PPE-001, MACH-005, MACH-003",PPE-001,True,True,True,44.51,True
+helmet_missing_worker.jpg,helmet,Missing Helmet,True,High,High,True,PPE-001,"PPE-001, MACH-005, MACH-003",PPE-001,True,True,True,14.05,True
+surface_crack_defect.jpg,crack,Surface Crack,True,High,High,True,DEF-001,"DEF-001, DEF-002, DEF-006",DEF-001,True,True,True,50.28,True
+metal_crack_component.jpg,crack,Surface Crack,True,High,High,True,DEF-001,"DEF-001, DEF-002, DEF-006",DEF-001,True,True,True,21.49,True
+blocked_exit_01.jpg,blocked,Blocked Emergency Exit,True,High,High,True,ESC-003,"MACH-002, MACH-005, PPE-008",MACH-002,False,False,True,21.8,True
+exit_blocked_area.jpg,blocked,Blocked Emergency Exit,True,High,High,True,ESC-003,"MACH-002, MACH-005, PPE-008",MACH-002,False,False,True,19.77,True
+unknown_scene.jpg,unclear,Unclear Visual Evidence,True,Review Needed,High,False,ESC-005,"DEF-001, MACH-008, MACH-006",DEF-001,False,False,True,11.98,True
+blurry_inspection_image.jpg,unclear,Unclear Visual Evidence,True,Review Needed,High,False,ESC-006,"DEF-001, MACH-008, MACH-006",DEF-001,False,False,True,9.35,True

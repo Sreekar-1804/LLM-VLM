@@ -1,0 +1,9 @@
+image_name,expected_issue_keyword,expected_severity,expected_rule_id
+ppe_violation_01.jpg,helmet,High,PPE-001
+helmet_missing_worker.jpg,helmet,High,PPE-001
+surface_crack_defect.jpg,crack,High,DEF-001
+metal_crack_component.jpg,crack,High,DEF-001
+blocked_exit_01.jpg,blocked,High,ESC-003
+exit_blocked_area.jpg,blocked,High,ESC-003
+unknown_scene.jpg,unclear,Review Needed,ESC-005
+blurry_inspection_image.jpg,unclear,Review Needed,ESC-006
