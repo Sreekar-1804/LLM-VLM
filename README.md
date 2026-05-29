@@ -1,14 +1,10 @@
-Below is a polished **final README** for your GitHub repo. Replace your current `README.md` with this.
 
-````markdown
 # VisionGuard AI  
 ## Multimodal Industrial Inspection Assistant using LLM, VLM, RAG and MLOps
 
 VisionGuard AI is an industry-focused multimodal AI system for industrial safety and quality inspection. The system analyzes inspection images, retrieves relevant safety or quality rules, and generates structured inspection reports using a Vision-Language Model, Retrieval-Augmented Generation, and LLM-based report generation.
 
 The project is designed as an AI Engineering and MLOps portfolio project, not just a simple chatbot or notebook demo.
-
----
 
 ## Project Overview
 
