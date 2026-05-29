@@ -1,47 +1,27 @@
-# VisionGuard AI
+# VisionGuard AI  
+## Multimodal Industrial Inspection Assistant using LLM, VLM, RAG and MLOps
 
-VisionGuard AI is a multimodal industrial inspection assistant that combines Vision-Language Models, Retrieval-Augmented Generation, Large Language Models, and MLOps practices to generate AI-assisted safety and quality inspection reports.
+VisionGuard AI is an industry-focused multimodal AI system for industrial safety and quality inspection. The system analyzes inspection images, retrieves relevant safety or quality rules, and generates structured inspection reports using a Vision-Language Model, Retrieval-Augmented Generation, and LLM-based report generation.
 
-## Project Goal
+The project is designed as an AI Engineering and MLOps portfolio project, not just a simple chatbot or notebook demo.
 
-The goal is to build an industry-focused AI system where users can upload inspection images and receive structured reports based on visual analysis and retrieved inspection rules.
+---
 
-## Core Features
+## Project Overview
 
-- Image-based inspection using Vision-Language Models
-- RAG-based retrieval of safety and quality rules
-- LLM-generated structured inspection reports
-- FastAPI backend for model serving
-- Streamlit frontend for interactive usage
-- MLflow tracking for experiment and run logging
-- Dockerized deployment
-- Automated testing and evaluation
+Industrial inspection workflows often require human reviewers to check images for safety risks, PPE violations, machine hazards, blocked access paths, damaged components, or quality defects.
 
-## Industry Use Case
+VisionGuard AI supports this workflow by providing an AI-assisted inspection pipeline:
 
-This project focuses on industrial safety and quality inspection scenarios such as:
-
-- Missing PPE
-- Unsafe machine zones
-- Blocked emergency exits
-- Surface defects
-- Oil leakage
-- Missing labels
-- Damaged components
-
-## Tech Stack
-
-- Python
-- FastAPI
-- Streamlit
-- OpenAI / Gemini APIs
-- FAISS
-- Sentence Transformers
-- MLflow
-- Docker
-- Pytest
-- GitHub Actions
-
-## Project Status
-
-Phase 0: Project setup completed.
+```text
+Image Upload
+   ↓
+VLM Image Understanding
+   ↓
+RAG-Based Rule Retrieval
+   ↓
+LLM Structured Report Generation
+   ↓
+MLflow Tracking
+   ↓
+Streamlit Dashboard
