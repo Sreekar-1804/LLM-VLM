@@ -1,35 +1,31 @@
 import base64
+from fileinput import filename
 import json
+from tracemalloc import start
+from urllib import response
+from prompt_toolkit import prompt
+import requests
 from pathlib import Path
 from typing import Dict
+
 
 from app.backend.core.config import settings
 from app.backend.schemas.inspection_schema import VLMAnalysis
 
 
 class VLMService:
-    """
-    Vision-Language Model service for image understanding.
-
-    Supported providers:
-    - mock: returns fixed test output without API calls
-    - openai: uses OpenAI vision model
-    - gemini: placeholder for Gemini vision integration
-    """
-
     def __init__(self):
         self.provider = settings.VLM_PROVIDER.lower()
 
     def analyze_image(self, image_bytes: bytes, filename: str = "uploaded_image.jpg") -> VLMAnalysis:
-        """
-        Analyze an inspection image and return structured visual understanding.
-        """
-
         if self.provider == "mock":
             return self._analyze_with_mock(filename)
 
         if self.provider == "openai":
             return self._analyze_with_openai(image_bytes, filename)
+
+        if self.provider == "ollama":
+            return self._analyze_with_ollama(image_bytes, filename)
 
         if self.provider == "gemini":
             return self._analyze_with_gemini(image_bytes, filename)
@@ -103,32 +99,46 @@ class VLMService:
 
         image_base64 = base64.b64encode(image_bytes).decode("utf-8")
 
+        filename_lower = filename.lower()
+
+        if filename_lower.endswith(".png"):
+            mime_type = "image/png"
+        elif filename_lower.endswith(".webp"):
+            mime_type = "image/webp"
+        else:
+            mime_type = "image/jpeg"
+
         prompt = """
-You are an industrial safety and quality inspection assistant.
+            You are an industrial safety and quality inspection assistant.
 
-Analyze the uploaded image and return ONLY valid JSON with the following fields:
+            Analyze the uploaded inspection image and return ONLY valid JSON with this exact structure:
 
-{
-  "scene_description": "short description",
-  "visible_objects": ["object1", "object2"],
-  "possible_issues": ["issue1", "issue2"],
-  "risk_level_guess": "Low | Medium | High | Review Needed",
-  "uncertainty": "Low | Medium | High"
-}
+            {
+            "scene_description": "short factual description of the visible scene",
+            "visible_objects": ["object1", "object2"],
+            "possible_issues": ["issue1", "issue2"],
+            "risk_level_guess": "Low | Medium | High | Review Needed",
+            "uncertainty": "Low | Medium | High"
+            }
 
-Focus on:
-- missing PPE
-- unsafe machine proximity
-- exposed cables
-- blocked exits
-- damaged parts
-- surface cracks
-- oil leaks
-- unclear or blurry inspection evidence
+            Focus only on visible evidence.
 
-Do not invent details that are not visible.
-If the image is unclear, use "Review Needed".
-"""
+            Inspection focus:
+            - missing PPE such as helmet, vest, gloves, goggles, safety shoes
+            - unsafe worker proximity to machines
+            - exposed cables or electrical panels
+            - blocked exits or blocked walkways
+            - surface cracks or damaged parts
+            - oil leakage, contamination, or unsafe floor conditions
+            - missing labels or unreadable markings
+            - blurry, dark, cropped, or unclear images
+
+            Rules:
+            - Do not invent details that are not visible.
+            - If the image is unclear, set risk_level_guess to "Review Needed".
+            - If evidence is uncertain, set uncertainty to "High".
+            - Keep the output concise.
+            """
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -140,14 +150,15 @@ If the image is unclear, use "Review Needed".
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:image/jpeg;base64,{image_base64}"
+                            "url": f"data:{mime_type};base64,{image_base64}"
                             }
                         }
                     ],
                 }
             ],
             response_format={"type": "json_object"},
-            temperature=0.2,
+            temperature=0.1,
+            max_tokens=500,
         )
 
         raw_output = response.choices[0].message.content
@@ -158,13 +169,13 @@ If the image is unclear, use "Review Needed".
             raise ValueError(f"OpenAI returned invalid JSON: {raw_output}") from exc
 
         return VLMAnalysis(
-            scene_description=parsed.get("scene_description", ""),
-            visible_objects=parsed.get("visible_objects", []),
-            possible_issues=parsed.get("possible_issues", []),
-            risk_level_guess=parsed.get("risk_level_guess", "Review Needed"),
-            uncertainty=parsed.get("uncertainty", "High"),
-            raw_model_output=raw_output
-        )
+        scene_description=parsed.get("scene_description", ""),
+        visible_objects=parsed.get("visible_objects", []),
+        possible_issues=parsed.get("possible_issues", []),
+        risk_level_guess=parsed.get("risk_level_guess", "Review Needed"),
+        uncertainty=parsed.get("uncertainty", "High"),
+        raw_model_output=raw_output
+    )
 
     def _analyze_with_gemini(self, image_bytes: bytes, filename: str) -> VLMAnalysis:
         """
@@ -178,6 +189,107 @@ If the image is unclear, use "Review Needed".
             "Gemini VLM provider is not implemented yet. Use VLM_PROVIDER=mock or VLM_PROVIDER=openai."
         )
 
+    def _analyze_with_ollama(self, image_bytes: bytes, filename: str) -> VLMAnalysis:
+        """
+        Local Ollama vision analysis.
+
+    Requires:
+    - Ollama running locally
+    - Vision model pulled, for example: ollama pull llava:7b
+        """
+
+        image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        prompt = """
+You are an industrial safety and quality inspection assistant.
+
+Analyze the uploaded inspection image and return ONLY valid JSON with this exact structure:
+
+{
+  "scene_description": "short factual description of the visible scene",
+  "visible_objects": ["object1", "object2"],
+  "possible_issues": ["issue1", "issue2"],
+  "risk_level_guess": "Low | Medium | High | Review Needed",
+  "uncertainty": "Low | Medium | High"
+}
+
+Focus only on visible evidence.
+
+Inspection focus:
+- missing PPE such as helmet, vest, gloves, goggles, safety shoes
+- unsafe worker proximity to machines
+- exposed cables or electrical panels
+- blocked exits or blocked walkways
+- surface cracks or damaged parts
+- oil leakage, contamination, or unsafe floor conditions
+- missing labels or unreadable markings
+- blurry, dark, cropped, or unclear images
+
+Rules:
+- Do not invent details that are not visible.
+- If the image is unclear, set risk_level_guess to "Review Needed".
+- If no issue is visible, use possible_issues as an empty list and risk_level_guess as "Low".
+- Return JSON only. No markdown. No explanation.
+    """
+
+        payload = {
+            "model": settings.OLLAMA_VLM_MODEL,
+            "prompt": prompt,
+            "images": [image_base64],
+            "stream": False,
+            "options": {
+                "temperature": 0.1
+            }
+        }
+
+        response = requests.post(
+        f"{settings.OLLAMA_BASE_URL}/api/generate",
+        json=payload,
+        timeout=180
+    )
+
+        response.raise_for_status()
+
+        raw_output = response.json().get("response", "")
+
+        parsed = self._safe_parse_json(raw_output)
+
+        return VLMAnalysis(
+            scene_description=parsed.get("scene_description", ""),
+            visible_objects=parsed.get("visible_objects", []),
+            possible_issues=parsed.get("possible_issues", []),
+            risk_level_guess=parsed.get("risk_level_guess", "Review Needed"),
+            uncertainty=parsed.get("uncertainty", "High"),
+            raw_model_output=raw_output
+        )
+
+    def _safe_parse_json(self, raw_output: str) -> Dict:
+        """
+    Tries to parse JSON even if the local model adds extra text.
+        """
+
+        try:
+            return json.loads(raw_output)
+        except json.JSONDecodeError:
+            pass
+
+        start = raw_output.find("{")
+        end = raw_output.rfind("}")
+
+        if start != -1 and end != -1 and end > start:
+            json_text = raw_output[start:end + 1]
+            try:
+                return json.loads(json_text)
+            except json.JSONDecodeError:
+                pass
+
+        return {
+            "scene_description": raw_output[:500],
+            "visible_objects": [],
+            "possible_issues": ["unclear visual evidence"],
+            "risk_level_guess": "Review Needed",
+            "uncertainty": "High"
+    }
 
 if __name__ == "__main__":
     service = VLMService()

@@ -1,5 +1,10 @@
 import json
+from tracemalloc import start
+from tracemalloc import start
+from urllib import response
 import uuid
+from click import prompt
+import requests
 from typing import Dict, List
 
 from app.backend.core.config import settings
@@ -28,6 +33,9 @@ class LLMService:
 
         if self.provider == "openai":
             return self._generate_with_openai(vlm_analysis, retrieved_rules)
+        
+        if self.provider == "ollama":
+            return self._generate_with_ollama(vlm_analysis, retrieved_rules)
 
         raise ValueError(f"Unsupported LLM provider: {self.provider}")
 
@@ -131,19 +139,25 @@ Generate ONLY valid JSON matching this schema:
   "matched_rule_summary": "short rule summary",
   "recommended_action": "clear action based on the retrieved rule",
   "human_review_required": true,
-  "confidence_note": "short note explaining uncertainty or confidence"
+  "confidence_note": "short note explaining confidence, uncertainty, or review need"
 }}
 
-Use the VLM image analysis and retrieved rules below.
-
-Do not invent rules.
-If the evidence is unclear, set severity to "Review Needed" and human_review_required to true.
+Inputs:
 
 VLM Analysis:
 {vlm_analysis.model_dump_json(indent=2)}
 
 Retrieved Rules:
 {json.dumps(retrieved_rules, indent=2)}
+
+Decision rules:
+- Use only the retrieved rules.
+- Do not invent rule IDs.
+- Pick the most relevant retrieved rule as matched_rule_id.
+- If visual evidence is unclear, set severity to "Review Needed".
+- If severity is High or Review Needed, human_review_required must be true.
+- If VLM uncertainty is Medium or High, human_review_required should be true.
+- Keep the report concise and professional.
 """
 
         response = client.chat.completions.create(
@@ -233,6 +247,121 @@ Retrieved Rules:
 
         return "The system found clear visual evidence, but final operational decisions should still follow site review procedures."
 
+
+    def _generate_with_ollama(
+        self,
+        vlm_analysis: VLMAnalysis,
+        retrieved_rules: List[Dict]
+    ) -> InspectionReport:
+        """
+        Local Ollama report generation.
+        """
+
+        inspection_id = f"VG-{uuid.uuid4().hex[:8].upper()}"
+
+        prompt = f"""
+    You are an industrial safety and quality inspection assistant.
+
+    Generate ONLY valid JSON matching this schema:
+
+    {{
+    "inspection_id": "{inspection_id}",
+    "issue_detected": true,
+    "issue_type": "short issue category",
+    "severity": "Low | Medium | High | Review Needed",
+    "visual_evidence": "evidence from image analysis",
+    "matched_rule_id": "most relevant rule id",
+    "matched_rule_summary": "short rule summary",
+    "recommended_action": "clear action based on the retrieved rule",
+    "human_review_required": true,
+    "confidence_note": "short note explaining confidence, uncertainty, or review need"
+    }}
+
+    Inputs:
+
+    VLM Analysis:
+    {vlm_analysis.model_dump_json(indent=2)}
+
+    Retrieved Rules:
+    {json.dumps(retrieved_rules, indent=2)}
+
+    Decision rules:
+    - Use only the retrieved rules.
+    - Do not invent rule IDs.
+    - Pick the most relevant retrieved rule as matched_rule_id.
+    - If no issue is visible, set issue_detected to false and severity to "Low".
+    - If visual evidence is unclear, set severity to "Review Needed".
+    - If severity is High or Review Needed, human_review_required must be true.
+    - If VLM uncertainty is Medium or High, human_review_required should be true.
+    - Return JSON only. No markdown. No explanation.
+    """
+
+        payload = {
+            "model": settings.OLLAMA_LLM_MODEL,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": 0.1
+            }
+        }
+
+        response = requests.post(
+        f"{settings.OLLAMA_BASE_URL}/api/generate",
+        json=payload,
+        timeout=180
+    )
+
+        response.raise_for_status()
+
+        raw_output = response.json().get("response", "")
+
+        parsed = self._safe_parse_json(raw_output, retrieved_rules)
+
+        parsed["inspection_id"] = parsed.get("inspection_id", inspection_id)
+
+        return InspectionReport(**parsed)
+
+
+    def _safe_parse_json(
+    self,
+    raw_output: str,
+    retrieved_rules: List[Dict] | None = None
+    ) -> Dict:
+        """
+    Parses JSON from local LLM output.
+    Local models sometimes add text before or after JSON.
+        """
+
+        try:
+            return json.loads(raw_output)
+        except json.JSONDecodeError:
+            pass
+
+        start = raw_output.find("{")
+        end = raw_output.rfind("}")
+
+        if start != -1 and end != -1 and end > start:
+            json_text = raw_output[start:end + 1]
+            try:
+                return json.loads(json_text)
+            except json.JSONDecodeError:
+                pass
+
+        retrieved_rules = retrieved_rules or []
+        primary_rule = retrieved_rules[0] if retrieved_rules else {}
+
+        return {
+            "inspection_id": f"VG-{uuid.uuid4().hex[:8].upper()}",
+            "issue_detected": False,
+            "issue_type": "Unclear Visual Evidence",
+            "severity": "Review Needed",
+            "visual_evidence": raw_output[:500],
+            "matched_rule_id": primary_rule.get("rule_id", "NO-RULE"),
+            "matched_rule_summary": primary_rule.get("text", "No matching rule found.")[:200],
+            "recommended_action": "Send the case for human review before taking further action.",
+            "human_review_required": True,
+            "confidence_note": "The local model did not return valid structured JSON, so human review is required."
+        }
 
 if __name__ == "__main__":
     sample_vlm = VLMAnalysis(

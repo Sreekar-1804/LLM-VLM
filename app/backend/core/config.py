@@ -10,6 +10,9 @@ class Settings:
 
     VLM_PROVIDER: str = os.getenv("VLM_PROVIDER", "openai")
     LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "openai")
+    OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    OLLAMA_VLM_MODEL: str = os.getenv("OLLAMA_VLM_MODEL", "llava:7b")
+    OLLAMA_LLM_MODEL: str = os.getenv("OLLAMA_LLM_MODEL", "llama3.2:3b")
 
     EMBEDDING_MODEL: str = os.getenv(
         "EMBEDDING_MODEL",

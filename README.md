@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # VisionGuard AI
 
 VisionGuard AI is a multimodal industrial inspection assistant that combines Vision-Language Models, Retrieval-Augmented Generation, Large Language Models, and MLOps practices to generate AI-assisted safety and quality inspection reports.
@@ -45,3 +46,6 @@ This project focuses on industrial safety and quality inspection scenarios such 
 ## Project Status
 
 Phase 0: Project setup completed.
+=======
+# LLM-VLM
+>>>>>>> d714ee351786c8016a612615770abcb2ddb8e39f
