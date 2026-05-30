@@ -26,3 +26,5 @@ Thumbs.db
 
 # Reports generated locally
 reports/sample_outputs/
+
+data/sample_images/sample_test.jpg

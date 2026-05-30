@@ -122,11 +122,20 @@ class InspectionPipelineService:
 
 
 if __name__ == "__main__":
+    from pathlib import Path
+
     service = InspectionPipelineService()
 
+    sample_image_path = Path("data/sample_images/sample_test.jpg")
+
+    if not sample_image_path.exists():
+        raise FileNotFoundError(
+            "Add a real test image at data/sample_images/sample_test.jpg before running real API mode."
+        )
+
     result = service.generate_full_inspection_report(
-        image_bytes=b"fake-image-bytes",
-        filename="ppe_violation_helmet_missing.jpg",
+        image_bytes=sample_image_path.read_bytes(),
+        filename=sample_image_path.name,
         top_k=3,
         enable_tracking=True
     )
@@ -134,6 +143,13 @@ if __name__ == "__main__":
     print("Filename:", result["filename"])
     print("Latency:", result["latency_ms"], "ms")
     print("MLflow Run ID:", result["mlflow_run_id"])
+
+    print("\nVLM Analysis:")
+    print(result["vlm_analysis"])
+
+    print("\nRetrieved Rules:")
+    for rule in result["retrieved_rules"]:
+        print(rule["rule_id"], "-", rule["category"], "-", rule["severity"])
 
     print("\nFinal Inspection Report:")
     print(result["inspection_report"])
