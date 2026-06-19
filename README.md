@@ -1,211 +1,128 @@
+# VisionGuard AI
 
-# VisionGuard AI  
 ## Multimodal Industrial Inspection Assistant using LLM, VLM, RAG and MLOps
 
-VisionGuard AI is an industry-focused multimodal AI system for industrial safety and quality inspection. The system analyzes inspection images, retrieves relevant safety or quality rules, and generates structured inspection reports using a Vision-Language Model, Retrieval-Augmented Generation, and LLM-based report generation.
-
-The project is designed as an AI Engineering and MLOps portfolio project, not just a simple chatbot or notebook demo.
-
-## Project Overview
-
-Industrial inspection workflows often require human reviewers to check images for safety risks, PPE violations, machine hazards, blocked access paths, damaged components, or quality defects.
-
-VisionGuard AI supports this workflow by providing an AI-assisted inspection pipeline:
-
-```text
-Image Upload
-   ↓
-VLM Image Understanding
-   ↓
-RAG-Based Rule Retrieval
-   ↓
-LLM Structured Report Generation
-   ↓
-MLflow Tracking
-   ↓
-Streamlit Dashboard
-````
-
-The system is designed for human-in-the-loop inspection, meaning it does not make final operational decisions automatically. High-risk or uncertain cases are marked for human review.
+<p align="center">
+  <img src="https://img.shields.io/badge/LLM-Report_Generation-purple?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/VLM-Image_Understanding-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/RAG-Rule_Retrieval-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/MLOps-MLflow-green?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/API-FastAPI-teal?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/UI-Streamlit-red?style=for-the-badge" />
+</p>
 
 ---
 
-## Industry Use Case
+## Project Overview
 
-This project focuses on industrial safety and quality inspection scenarios such as:
+**VisionGuard AI** is an AI-powered industrial inspection assistant that analyzes workplace images, identifies possible safety or quality issues, retrieves relevant inspection rules, and generates a structured inspection report.
 
-* Missing helmet or PPE violation
-* Unsafe worker proximity to machinery
-* Blocked emergency exits
-* Exposed cables or unsafe machine areas
-* Surface cracks or damaged components
-* Missing labels or barcode issues
-* Oil leakage or contamination
-* Unclear or blurry inspection evidence
+The project is designed as an **AI engineering system**, not only as a notebook experiment.
 
-The use case is relevant to:
+It combines:
 
-* Manufacturing
-* Automotive production
-* Industrial safety
-* Quality control
-* Industry 4.0
-* AI-assisted inspection systems
+* Vision-Language Model reasoning
+* Retrieval-Augmented Generation
+* Large Language Model report generation
+* FastAPI backend
+* Streamlit frontend
+* MLflow tracking
+* Docker-based deployment
+* Pytest testing
+
+---
+
+## Problem Statement
+
+Manual industrial inspection can be slow, inconsistent, and dependent on human attention.
+
+This project helps automate the first inspection layer by allowing a user to upload an industrial image and receive:
+
+* Detected safety or quality concerns
+* Relevant rule-based context
+* Structured inspection report
+* Risk level
+* Recommended actions
+* Compliance checklist
+
+---
+
+## Core Workflow
+
+```mermaid
+flowchart LR
+    A[Upload Industrial Image] --> B[VLM Image Analysis]
+    B --> C[Extract Visual Observations]
+    C --> D[RAG Rule Retrieval]
+    D --> E[LLM Report Generation]
+    E --> F[Structured Inspection Report]
+    F --> G[MLflow Logging]
+    F --> H[Streamlit Dashboard]
+```
 
 ---
 
 ## Key Features
 
-* Vision-Language Model service for image understanding
-* Mock VLM mode for local testing without API keys
-* Optional OpenAI-based VLM/LLM integration
-* Custom industrial inspection rule knowledge base
-* FAISS-based semantic retrieval pipeline
-* Sentence Transformer embeddings
-* LLM-based structured inspection report generation
-* FastAPI backend for model serving
-* Streamlit frontend for interactive demo
-* MLflow tracking for inspection auditability
-* Evaluation workflow with labeled test cases
-* Pytest-based test suite
-* Docker Compose deployment
-* GitHub Actions CI pipeline
+* Upload industrial inspection images
+* Analyze image content using VLM-style reasoning
+* Retrieve relevant safety and quality rules using RAG
+* Generate structured inspection reports using an LLM
+* Log experiments and outputs using MLflow
+* Provide an interactive Streamlit dashboard
+* Expose backend services using FastAPI
+* Include test coverage using Pytest
+* Support Docker-based local deployment
 
 ---
 
-## Architecture
+## Use Cases
 
-```text
-                        ┌────────────────────┐
-                        │  Streamlit Frontend │
-                        │  Image Upload UI    │
-                        └─────────┬──────────┘
-                                  │
-                                  ▼
-                        ┌────────────────────┐
-                        │   FastAPI Backend   │
-                        │   REST Endpoints    │
-                        └─────────┬──────────┘
-                                  │
-              ┌───────────────────┼───────────────────┐
-              ▼                   ▼                   ▼
-     ┌────────────────┐   ┌────────────────┐   ┌────────────────┐
-     │  VLM Service   │   │  RAG Service   │   │  LLM Service   │
-     │ Image Analysis │   │ Rule Retrieval │   │ Report Output  │
-     └───────┬────────┘   └───────┬────────┘   └───────┬────────┘
-             │                    │                    │
-             ▼                    ▼                    ▼
-     ┌────────────────┐   ┌────────────────┐   ┌────────────────┐
-     │ Scene Summary  │   │ FAISS Vector DB│   │ JSON Report    │
-     │ Possible Issues│   │ Rule Chunks    │   │ Severity/Action│
-     └────────────────┘   └────────────────┘   └────────────────┘
-                                  │
-                                  ▼
-                        ┌────────────────────┐
-                        │      MLflow        │
-                        │ Tracking + Logs    │
-                        └────────────────────┘
-```
+This system can support visual inspection for:
 
----
-
-## System Workflow
-
-### 1. Image Analysis
-
-The uploaded image is analyzed by the VLM service.
-
-Example output:
-
-```json
-{
-  "scene_description": "A worker appears to be near industrial machinery without a clearly visible safety helmet.",
-  "visible_objects": ["worker", "industrial machine", "production floor"],
-  "possible_issues": ["missing helmet", "unsafe proximity to machinery"],
-  "risk_level_guess": "High",
-  "uncertainty": "Medium"
-}
-```
-
-### 2. Rule Retrieval
-
-The VLM output is converted into a semantic query and passed to the RAG pipeline.
-
-Example query:
-
-```text
-worker missing helmet near active machinery unsafe PPE violation
-```
-
-The FAISS retriever returns relevant inspection rules such as:
-
-```text
-PPE-001: Head Protection
-MACH-005: Unsafe Worker Distance
-ESC-003: High Severity Issue
-```
-
-### 3. Structured Report Generation
-
-The LLM service generates a structured inspection report.
-
-Example output:
-
-```json
-{
-  "inspection_id": "VG-A1B2C3D4",
-  "issue_detected": true,
-  "issue_type": "Missing Helmet",
-  "severity": "High",
-  "visual_evidence": "A worker appears to be near industrial machinery without a clearly visible safety helmet.",
-  "matched_rule_id": "PPE-001",
-  "matched_rule_summary": "Workers must wear safety helmets when working near operating machinery.",
-  "recommended_action": "Stop work temporarily and ensure the worker wears an approved safety helmet before resuming operations.",
-  "human_review_required": true,
-  "confidence_note": "The system detected a likely issue, but human review is recommended due to medium uncertainty."
-}
-```
+* PPE violations
+* Unsafe machine proximity
+* Blocked emergency exits
+* Exposed cables
+* Surface cracks
+* Oil leakage
+* Damaged industrial components
+* Missing labels
+* Unclear visual evidence
 
 ---
 
 ## Tech Stack
 
-### AI and ML
+| Category    | Tools                             |
+| ----------- | --------------------------------- |
+| Programming | Python                            |
+| Backend     | FastAPI                           |
+| Frontend    | Streamlit                         |
+| VLM         | Mock mode / API-based VLM support |
+| LLM         | OpenAI / local LLM support        |
+| RAG         | FAISS, Sentence Transformers      |
+| Tracking    | MLflow                            |
+| Testing     | Pytest                            |
+| Deployment  | Docker, Docker Compose            |
+| CI/CD       | GitHub Actions                    |
 
-* Python
-* Vision-Language Model service
-* LLM-based report generation
-* Sentence Transformers
-* FAISS vector search
-* Retrieval-Augmented Generation
+---
 
-### Backend
+## System Architecture
 
-* FastAPI
-* Pydantic
-* Uvicorn
-* REST API architecture
-
-### Frontend
-
-* Streamlit
-* Requests
-
-### MLOps and Engineering
-
-* MLflow
-* Docker
-* Docker Compose
-* Pytest
-* GitHub Actions
-* Git/GitHub
-
-### Data and Evaluation
-
-* Pandas
-* Custom markdown rule knowledge base
-* Evaluation CSV
-* Structured report validation
+```mermaid
+flowchart TD
+    User[User] --> UI[Streamlit Frontend]
+    UI --> API[FastAPI Backend]
+    API --> VLM[VLM Service]
+    API --> RAG[RAG Retrieval Service]
+    RAG --> KB[Inspection Rule Knowledge Base]
+    API --> LLM[LLM Report Generator]
+    API --> LOG[MLflow Tracking]
+    LLM --> Report[Structured Report]
+    Report --> UI
+```
 
 ---
 
@@ -215,470 +132,178 @@ Example output:
 visionguard-ai/
 │
 ├── app/
-│   ├── backend/
-│   │   ├── main.py
-│   │   ├── routes/
-│   │   │   └── inspection_routes.py
-│   │   ├── services/
-│   │   │   ├── rag_service.py
-│   │   │   ├── vlm_service.py
-│   │   │   ├── llm_service.py
-│   │   │   ├── report_service.py
-│   │   │   ├── logging_service.py
-│   │   │   └── rule_loader.py
-│   │   ├── schemas/
-│   │   │   └── inspection_schema.py
-│   │   └── core/
-│   │       ├── config.py
-│   │       └── prompts.py
-│   │
-│   └── frontend/
-│       └── streamlit_app.py
+│   ├── api/
+│   ├── services/
+│   ├── rag/
+│   ├── vlm/
+│   ├── llm/
+│   └── utils/
 │
-├── data/
-│   ├── inspection_rules/
-│   │   ├── ppe_rules.md
-│   │   ├── machine_safety_rules.md
-│   │   ├── defect_rules.md
-│   │   └── escalation_policy.md
-│   │
-│   ├── sample_images/
-│   └── eval/
-│       └── evaluation_labels.csv
+├── frontend/
+│   └── streamlit_app.py
 │
-├── notebooks/
-│   ├── 01_rag_pipeline.ipynb
-│   ├── 02_vlm_testing.ipynb
-│   ├── 03_end_to_end_pipeline.ipynb
-│   └── 04_evaluation.ipynb
-│
-├── reports/
-│   ├── evaluation_results.csv
-│   └── evaluation_summary.md
+├── knowledge_base/
+│   └── inspection_rules.md
 │
 ├── tests/
-│   ├── test_api.py
-│   ├── test_schema.py
-│   ├── test_rag.py
-│   ├── test_vlm.py
-│   ├── test_llm.py
-│   ├── test_pipeline.py
-│   └── test_evaluation_files.py
+│   └── test_pipeline.py
 │
-├── vector_store/
-├── logs/
 ├── mlruns/
 │
-├── Dockerfile.backend
-├── Dockerfile.frontend
 ├── docker-compose.yml
+├── Dockerfile
 ├── requirements.txt
-├── pytest.ini
-├── .env.example
-├── .gitignore
-└── README.md
+├── README.md
+└── .gitignore
 ```
 
 ---
 
-## Installation
+## Example Inspection Output
 
-### 1. Clone the repository
+```text
+Inspection Summary:
+The image shows a worker operating near industrial equipment. Possible safety concerns include missing protective equipment and unsafe proximity to machinery.
+
+Risk Level:
+Medium to High
+
+Relevant Rules:
+- Workers should wear required PPE in operational zones.
+- Emergency exits and access paths must remain clear.
+- Workers should maintain safe distance from active machinery.
+
+Recommended Actions:
+1. Verify PPE compliance.
+2. Check machine safety boundaries.
+3. Confirm that emergency exits are not blocked.
+4. Escalate for manual inspection if visual evidence is unclear.
+```
+
+---
+
+## How to Run Locally
+
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/Sreekar-1804/LLM-VLM.git
 cd LLM-VLM
 ```
 
-### 2. Create virtual environment
+### 2. Create Virtual Environment
 
 ```bash
-python -m venv venv
+python -m venv .venv
 ```
 
-Activate on Windows:
+### 3. Activate Environment
+
+For Windows:
 
 ```bash
-venv\Scripts\activate
+.venv\Scripts\activate
 ```
 
-Activate on macOS/Linux:
+For macOS/Linux:
 
 ```bash
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
-### 3. Install dependencies
+### 4. Install Requirements
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Create `.env`
-
-Create a `.env` file using `.env.example`.
-
-For local mock mode:
-
-```env
-OPENAI_API_KEY=
-GOOGLE_API_KEY=
-
-VLM_PROVIDER=mock
-LLM_PROVIDER=mock
-
-EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
-RETRIEVAL_TOP_K=3
-
-MLFLOW_TRACKING_URI=mlruns
-```
-
-Mock mode allows the project to run without external API keys.
-
----
-
-## Build FAISS Vector Store
-
-Before running the backend, build the FAISS index:
+### 5. Run FastAPI Backend
 
 ```bash
-python -m app.backend.services.rag_service
+uvicorn app.main:app --reload
 ```
 
-This creates:
+### 6. Run Streamlit Frontend
 
-```text
-vector_store/faiss_index.bin
-vector_store/rule_chunks.json
+```bash
+streamlit run frontend/streamlit_app.py
 ```
 
 ---
 
-## Run Locally
-
-### Terminal 1: Start FastAPI backend
+## Docker Usage
 
 ```bash
-uvicorn app.backend.main:app --reload
+docker-compose up --build
 ```
-
-FastAPI docs:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-### Terminal 2: Start Streamlit frontend
-
-```bash
-streamlit run app/frontend/streamlit_app.py
-```
-
-Streamlit app:
-
-```text
-http://127.0.0.1:8501
-```
-
-### Terminal 3: Start MLflow UI
-
-On Windows:
-
-```bash
-mlflow ui --backend-store-uri file:///D:/visionguard-ai/mlruns --port 5000
-```
-
-For generic local use:
-
-```bash
-mlflow ui --backend-store-uri mlruns --port 5000
-```
-
-MLflow UI:
-
-```text
-http://127.0.0.1:5000
-```
-
----
-
-## Run with Docker
-
-The project includes Docker Compose setup for:
-
-* FastAPI backend
-* Streamlit frontend
-* MLflow UI
-
-### Build containers
-
-```bash
-docker compose build
-```
-
-### Run full stack
-
-```bash
-docker compose up
-```
-
-Open:
-
-```text
-FastAPI Docs: http://127.0.0.1:8000/docs
-Streamlit App: http://127.0.0.1:8501
-MLflow UI: http://127.0.0.1:5000
-```
-
-### Stop containers
-
-```bash
-docker compose down
-```
-
----
-
-## API Endpoints
-
-### Health Check
-
-```http
-GET /health
-```
-
-### Search Rules
-
-```http
-POST /inspection/search-rules
-```
-
-Request:
-
-```json
-{
-  "query": "worker missing helmet near operating machinery",
-  "top_k": 3
-}
-```
-
-### Analyze Image
-
-```http
-POST /inspection/analyze-image
-```
-
-Returns VLM-based image analysis.
-
-### Analyze Image with Rules
-
-```http
-POST /inspection/analyze-with-rules
-```
-
-Returns:
-
-* VLM analysis
-* generated RAG query
-* retrieved inspection rules
-
-### Generate Full Inspection Report
-
-```http
-POST /inspection/generate-report
-```
-
-Returns:
-
-* VLM analysis
-* RAG query
-* retrieved rules
-* final structured inspection report
-* latency
-* MLflow run ID
-
----
-
-## MLflow Tracking
-
-VisionGuard AI logs inspection runs using MLflow.
-
-Tracked information includes:
-
-* filename
-* VLM provider
-* LLM provider
-* embedding model
-* retrieval top-k
-* retrieved rule IDs
-* matched rule ID
-* severity
-* issue type
-* latency
-* human review requirement
-* final inspection report JSON
-
-MLflow provides auditability and reproducibility for inspection runs.
-
----
-
-## Evaluation
-
-The project includes an evaluation workflow for measuring pipeline reliability.
-
-Evaluation metrics include:
-
-* issue keyword accuracy
-* severity classification accuracy
-* rule retrieval accuracy
-* matched rule accuracy
-* structured report validity
-* average latency
-* human review rate
-
-Evaluation files:
-
-```text
-data/eval/evaluation_labels.csv
-reports/evaluation_results.csv
-reports/evaluation_summary.md
-```
-
-Current evaluation uses mock VLM/LLM mode to validate pipeline structure before real VLM API-based testing.
 
 ---
 
 ## Testing
 
-The project includes a Pytest-based test suite covering:
-
-* FastAPI health and inspection endpoints
-* Pydantic schema validation
-* VLM mock image analysis
-* LLM structured report generation
-* FAISS-based RAG retrieval
-* End-to-end inspection pipeline
-* Evaluation file validation
-
-Run tests:
+Run tests with:
 
 ```bash
-python -m pytest
+pytest
 ```
 
 ---
 
-## Continuous Integration
+## What This Project Demonstrates
 
-The project includes a GitHub Actions workflow that runs automated tests on every push and pull request.
+This project demonstrates:
 
-The CI pipeline:
-
-* sets up Python 3.11
-* installs project dependencies
-* builds the FAISS vector store
-* runs the Pytest suite
-
-Workflow file:
-
-```text
-.github/workflows/test.yml
-```
-
----
-
-## Current Project Status
-
-* Phase 0: Project setup completed
-* Phase 1: Inspection rule knowledge base completed
-* Phase 2: RAG pipeline with FAISS and Sentence Transformers completed
-* Phase 3: VLM image understanding service completed
-* Phase 4: Multimodal VLM-to-RAG pipeline completed
-* Phase 5: LLM-based structured inspection report generation completed
-* Phase 6: Streamlit frontend integration completed
-* Phase 7: MLflow tracking completed
-* Phase 8: Evaluation system completed
-* Phase 9: Testing hardening completed
-* Phase 10: Dockerized deployment completed
-* Phase 11: GitHub Actions CI completed
-
----
-
-## Limitations
-
-This project is designed as an AI engineering portfolio system and not as a certified industrial safety tool.
-
-Current limitations:
-
-* Mock mode uses filenames to simulate VLM behavior
-* Real VLM performance depends on selected API provider
-* No real industrial dataset has been used yet
-* Rule base is manually created and simplified
-* No production database is connected
-* No role-based user management
-* No Kubernetes deployment
-* Human review is still required for high-risk cases
+* How to build an end-to-end AI application
+* How to combine VLM, RAG, and LLM components
+* How to structure an AI backend using FastAPI
+* How to create a user-facing demo with Streamlit
+* How to track experiments and outputs with MLflow
+* How to test AI pipelines using Pytest
+* How to prepare an AI system for Docker-based deployment
 
 ---
 
 ## Future Improvements
 
-Potential improvements include:
-
-* Real VLM evaluation using actual industrial inspection images
-* OpenAI or Gemini-based production VLM mode
-* Local VLM support using LLaVA or Qwen-VL
-* Hybrid retrieval using keyword search and vector search
-* Reranking retrieved rules
-* PostgreSQL database for inspection history
-* Authentication and user roles
-* PDF report generation
-* Prometheus/Grafana monitoring
-* Cloud deployment
-* Kubernetes orchestration
-* ONNX/TensorRT optimization for edge AI use cases
+* Add stronger real VLM integration
+* Add local model support using Ollama
+* Improve image-level risk scoring
+* Add PDF inspection report export
+* Add user authentication
+* Improve rule retrieval quality
+* Deploy backend and frontend to cloud
 
 ---
 
-## Project Highlights
+## Recruiter Summary
 
-This project demonstrates practical skills in:
-
-* LLM/VLM application development
-* Multimodal AI pipeline design
-* Retrieval-Augmented Generation
-* Vector search using FAISS
-* FastAPI backend development
-* Streamlit frontend development
-* MLOps with MLflow
-* Dockerized deployment
-* Automated testing with Pytest
-* CI workflow using GitHub Actions
-* Evaluation and failure analysis
-
----
-
-## Interview Summary
-
-VisionGuard AI is an end-to-end multimodal industrial inspection assistant. The system takes an inspection image, analyzes it using a VLM service, retrieves relevant safety or quality rules using a FAISS-based RAG pipeline, and generates a structured inspection report using an LLM service.
-
-I designed the system with production-style components including FastAPI serving, Streamlit UI, MLflow tracking, Docker Compose deployment, Pytest validation, and GitHub Actions CI. The project focuses on industrial safety and quality inspection scenarios and follows a human-in-the-loop approach for high-risk or uncertain cases.
-
----
-
-## Repository
-
-GitHub:
+This project shows practical AI engineering skills across:
 
 ```text
-https://github.com/Sreekar-1804/LLM-VLM
+Image Input → VLM Analysis → RAG Retrieval → LLM Report → API → Dashboard → Tracking → Testing → Docker
 ```
 
-````
+It is designed to show applied skills in:
 
-After pasting, run:
+* Multimodal AI
+* LLM applications
+* Retrieval-Augmented Generation
+* Computer vision workflows
+* MLOps
+* Backend API development
+* AI product prototyping
 
-```powershell
-git add README.md
-git commit -m "Add final professional README"
-git push
-````
+---
+
+## Author
+
+**Sreekar**
+
+<p>
+  <a href="mailto:sreekar.germany.2025@gmail.com">
+    <img src="https://img.shields.io/badge/Email-Contact-red?style=for-the-badge&logo=gmail&logoColor=white" />
+  </a>
+  <a href="https://github.com/Sreekar-1804">
+    <img src="https://img.shields.io/badge/GitHub-Sreekar--1804-black?style=for-the-badge&logo=github&logoColor=white" />
+  </a>
+</p>
